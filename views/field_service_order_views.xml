@@ -116,8 +116,7 @@
                         <!-- Pestaña: Materiales y Servicios -->
                         <page string="Materiales y Servicios" name="lines">
                             <field name="line_ids">
-                                <tree editable="bottom">
-                                    <field name="sequence" widget="handle"/>
+                                <list editable="bottom">
                                     <field name="product_id" options="{'no_create': True}"/>
                                     <field name="description"/>
                                     <field name="qty"/>
@@ -127,7 +126,7 @@
                                     <field name="price_subtotal"/>
                                     <field name="price_total"/>
                                     <field name="sale_order_line_id" readonly="1" optional="hide"/>
-                                </tree>
+                                </list>
                             </field>
 
                             <div class="oe_subtotal_footer oe_right">
@@ -161,8 +160,8 @@
 
                         <!-- Pestaña: Pagos -->
                         <page string="Pagos en Campo" name="payments">
-                            <field name="payment_ids" widget="one2many">
-                                <tree>
+                            <field name="payment_ids">
+                                <list>
                                     <field name="date"/>
                                     <field name="payment_method"/>
                                     <field name="amount"/>
@@ -178,7 +177,7 @@
                                     <button name="action_create_account_payment" type="object"
                                             string="Registrar en Cont." class="btn-sm"
                                             invisible="state != 'done' or account_payment_id"/>
-                                </tree>
+                                </list>
                             </field>
                             <div>
                                 <field name="receipt_number" readonly="1"
