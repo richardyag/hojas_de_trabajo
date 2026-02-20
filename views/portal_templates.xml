@@ -586,7 +586,7 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Método de Pago *</label>
-                                    <select name="payment_method" class="form-select" required>
+                                    <select name="payment_method" class="form-select" required="required">
                                         <option value="cash">💵 Efectivo</option>
                                         <option value="credit_card">💳 Tarjeta de Crédito</option>
                                         <option value="debit_card">💳 Tarjeta de Débito</option>
