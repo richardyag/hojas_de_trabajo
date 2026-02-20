@@ -6,7 +6,7 @@
         <field name="model_id" ref="model_field_service_order"/>
         <field name="subject">Orden de Servicio {{object.name}} asignada – {{object.company_id.name}}</field>
         <field name="email_to">{{object.technician_id.partner_id.email}}</field>
-        <field name="email_from">{{(object.company_id.email or user.email) | safe}}</field>
+        <field name="email_from">{{object.company_id.email or user.email}}</field>
         <field name="body_html" type="html">
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
                 <h2 style="color: #2c6fad;">Nueva Orden de Servicio Asignada</h2>
@@ -28,7 +28,7 @@
                     <tr>
                         <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Fecha programada:</strong></td>
                         <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-                            {{object.scheduled_date and object.scheduled_date | format_datetime(dt_format='medium', lang_code=object.partner_id.lang) or 'Por definir'}}
+                            {{object.scheduled_date or 'Por definir'}}
                         </td>
                     </tr>
                     <tr>
