@@ -8,11 +8,10 @@
               name="Portal: Servicios en Campo"
               customize_show="True"
               inherit_id="portal.portal_my_home">
-        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
-            <t t-if="fso_count" t-call="portal.portal_docs_entry">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
                 <t t-set="title">Mis Órdenes de Servicio</t>
                 <t t-set="url">/my/field-service</t>
-                <t t-set="count" t-value="fso_count"/>
                 <t t-set="placeholder_count">'fso_count'</t>
             </t>
         </xpath>
