@@ -87,7 +87,8 @@
                         </group>
                         <group string="Responsables y Fechas">
                             <field name="user_id"/>
-                            <field name="technician_id"/>
+                            <field name="technician_id"
+                                   domain="[('active', '=', True), '|', ('share', '=', True), ('share', '=', False)]"/>
                             <field name="scheduled_date"/>
                             <field name="start_date" readonly="1"/>
                             <field name="completion_date" readonly="1"/>
