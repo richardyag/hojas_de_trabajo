@@ -9,6 +9,15 @@
         <field name="sequence">80</field>
     </record>
 
+    <record id="group_field_service_user" model="res.groups">
+        <field name="name">Usuario de Servicios</field>
+        <field name="category_id" ref="module_category_field_service"/>
+        <field name="comment">
+            Puede crear y gestionar órdenes de servicio. Ve sus propias órdenes
+            y las que tiene asignadas. Puede asignar técnicos.
+        </field>
+    </record>
+
     <record id="group_field_service_manager" model="res.groups">
         <field name="name">Gerente de Servicios</field>
         <field name="category_id" ref="module_category_field_service"/>
@@ -16,15 +25,6 @@
         <field name="comment">
             Acceso completo: crear, asignar, modificar y cerrar órdenes de servicio.
             Puede ver todos los registros.
-        </field>
-    </record>
-
-    <record id="group_field_service_user" model="res.groups">
-        <field name="name">Usuario de Servicios</field>
-        <field name="category_id" ref="module_category_field_service"/>
-        <field name="comment">
-            Puede crear y gestionar órdenes de servicio. Ve sus propias órdenes
-            y las que tiene asignadas. Puede asignar técnicos.
         </field>
     </record>
 
