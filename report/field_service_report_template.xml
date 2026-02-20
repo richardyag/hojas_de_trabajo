@@ -74,7 +74,6 @@
                                 <address>
                                     <strong><t t-out="o.partner_id.name"/></strong><br/>
                                     <t t-if="o.partner_phone">Tel: <t t-out="o.partner_phone"/><br/></t>
-                                    <t t-if="o.partner_mobile">Cel: <t t-out="o.partner_mobile"/><br/></t>
                                     <t t-if="o.partner_email"><t t-out="o.partner_email"/><br/></t>
                                 </address>
                                 <t t-if="o.service_address_id">

@@ -99,7 +99,6 @@
                     <group string="Datos de Contacto del Cliente">
                         <group>
                             <field name="partner_phone" readonly="1"/>
-                            <field name="partner_mobile" readonly="1"/>
                             <field name="partner_email" readonly="1"/>
                         </group>
                         <group>

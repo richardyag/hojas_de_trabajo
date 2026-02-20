@@ -195,14 +195,6 @@
                                             </a>
                                         </p>
                                     </t>
-                                    <t t-if="order.partner_mobile">
-                                        <p class="mb-1">
-                                            <i class="fa fa-mobile me-1 text-muted"/>
-                                            <a t-attf-href="tel:#{order.partner_mobile}">
-                                                <t t-out="order.partner_mobile"/>
-                                            </a>
-                                        </p>
-                                    </t>
                                     <t t-if="order.partner_email">
                                         <p class="mb-0">
                                             <i class="fa fa-envelope me-1 text-muted"/>

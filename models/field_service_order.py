@@ -45,9 +45,6 @@ class FieldServiceOrder(models.Model):
     partner_phone = fields.Char(
         related='partner_id.phone', string='Teléfono', readonly=True
     )
-    partner_mobile = fields.Char(
-        related='partner_id.mobile', string='Móvil', readonly=True
-    )
     partner_email = fields.Char(
         related='partner_id.email', string='Email', readonly=True
     )
