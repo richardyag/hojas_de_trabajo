@@ -337,8 +337,8 @@
                 <filter string="Urgentes" name="urgent"
                         domain="[('priority', '=', '1')]"/>
                 <filter string="Hoy" name="today"
-                        domain="[('scheduled_date', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
-                                  ('scheduled_date', '&lt;', datetime.datetime.combine(context_today() + datetime.timedelta(days=1), datetime.time(0,0,0)))]"/>
+                        domain="[('scheduled_date', '>=', context_today().strftime('%Y-%m-%d')),
+                                 ('scheduled_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
                 <group expand="0" string="Agrupar por">
                     <filter string="Estado" name="group_state"
                             context="{'group_by': 'state'}"/>
