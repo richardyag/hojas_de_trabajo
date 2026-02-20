@@ -36,8 +36,7 @@
                     <button name="action_open_signature_wizard" string="Capturar Firma"
                             type="object" class="btn-secondary"
                             invisible="state not in ('in_progress', 'done')"/>
-                    <widget name="statusbar"
-                            statusbar_visible="draft,assigned,in_progress,done,invoiced"/>
+                    <statusbar statusbar_visible="draft,assigned,in_progress,done,invoiced"/>
                 </header>
 
                 <sheet>
