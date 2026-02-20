@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         1. Contador en home del portal
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="portal_my_home_field_service"
+              name="Portal: Servicios en Campo"
+              customize_show="True"
+              inherit_id="portal.portal_my_home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-if="fso_count" t-call="portal.portal_docs_entry">
+                <t t-set="title">Mis Órdenes de Servicio</t>
+                <t t-set="url">/my/field-service</t>
+                <t t-set="count" t-value="fso_count"/>
+                <t t-set="placeholder_count">'fso_count'</t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         2. Lista de órdenes del técnico
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="portal_fso_list" name="Portal: Lista de Órdenes de Servicio">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Mis Órdenes de Servicio</t>
+            </t>
+
+            <t t-if="not orders">
+                <div class="alert alert-info mt-3">
+                    No tienes órdenes de servicio asignadas actualmente.
+                </div>
+            </t>
+
+            <t t-if="orders">
+                <t t-call="portal.portal_table">
+                    <thead>
+                        <tr class="active">
+                            <th>Referencia</th>
+                            <th>Cliente</th>
+                            <th>Tipo</th>
+                            <th>Fecha Programada</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="orders" t-as="order">
+                            <tr>
+                                <td>
+                                    <a t-attf-href="/my/field-service/#{order.id}">
+                                        <t t-out="order.name"/>
+                                    </a>
+                                </td>
+                                <td><t t-out="order.partner_id.name"/></td>
+                                <td>
+                                    <t t-out="dict(order._fields['service_type'].selection).get(order.service_type, order.service_type)"/>
+                                </td>
+                                <td>
+                                    <t t-if="order.scheduled_date">
+                                        <t t-out="order.scheduled_date" t-options="{'widget': 'datetime'}"/>
+                                    </t>
+                                    <t t-else="">—</t>
+                                </td>
+                                <td>
+                                    <t t-out="order.amount_total"
+                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                </td>
+                                <td>
+                                    <t t-set="state_class" t-value="{
+                                        'draft': 'secondary',
+                                        'assigned': 'info',
+                                        'in_progress': 'primary',
+                                        'done': 'warning',
+                                        'invoiced': 'success',
+                                        'cancelled': 'danger',
+                                    }.get(order.state, 'secondary')"/>
+                                    <span t-attf-class="badge text-bg-#{state_class}">
+                                        <t t-out="dict(order._fields['state'].selection).get(order.state, order.state)"/>
+                                    </span>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </t>
+                <div t-if="pager" class="o_portal_pager text-center">
+                    <t t-call="portal.pager"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         3. Detalle de la orden (panel del técnico)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="portal_fso_detail" name="Portal: Detalle Orden de Servicio">
+        <t t-call="portal.portal_layout">
+
+            <t t-set="o_portal_fullwidth_alert" groups="base.group_public">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url"
+                       t-value="'/odoo/field-service/%s' % order.id"/>
+                </t>
+            </t>
+
+            <!-- Alertas -->
+            <t t-if="error">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <t t-out="error"/>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"/>
+                </div>
+            </t>
+            <t t-if="success">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <t t-out="success"/>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"/>
+                </div>
+            </t>
+
+            <!-- Encabezado -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h2 class="mb-1">
+                                <t t-out="order.name"/>
+                            </h2>
+                            <t t-set="state_class" t-value="{
+                                'draft': 'secondary',
+                                'assigned': 'info',
+                                'in_progress': 'primary',
+                                'done': 'warning',
+                                'invoiced': 'success',
+                                'cancelled': 'danger',
+                            }.get(order.state, 'secondary')"/>
+                            <span t-attf-class="badge text-bg-#{state_class} fs-6">
+                                <t t-out="dict(order._fields['state'].selection).get(order.state, order.state)"/>
+                            </span>
+                            <t t-if="order.priority == '1'">
+                                <span class="badge text-bg-danger ms-1">URGENTE</span>
+                            </t>
+                        </div>
+                        <!-- Botones de acción principales -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <t t-if="order.state in ('draft', 'assigned')">
+                                <form t-attf-action="/my/field-service/#{order.id}/start" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-play me-1"/> Iniciar Trabajo
+                                    </button>
+                                </form>
+                            </t>
+                            <t t-if="order.state == 'in_progress'">
+                                <form t-attf-action="/my/field-service/#{order.id}/done" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-success"
+                                            onclick="return confirm('¿Confirma que el trabajo fue completado?')">
+                                        <i class="fa fa-check me-1"/> Marcar como Completado
+                                    </button>
+                                </form>
+                            </t>
+                            <t t-if="order.receipt_number">
+                                <a t-attf-href="/my/field-service/#{order.id}/receipt"
+                                   class="btn btn-outline-secondary" target="_blank">
+                                    <i class="fa fa-file-pdf-o me-1"/> Descargar Recibo
+                                </a>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información principal -->
+            <div class="row">
+                <!-- Columna izquierda: datos del trabajo -->
+                <div class="col-lg-7">
+
+                    <!-- Card: Datos del Cliente -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fa fa-user me-2"/>Cliente</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <p class="mb-1"><strong><t t-out="order.partner_id.name"/></strong></p>
+                                    <t t-if="order.partner_phone">
+                                        <p class="mb-1">
+                                            <i class="fa fa-phone me-1 text-muted"/>
+                                            <a t-attf-href="tel:#{order.partner_phone}">
+                                                <t t-out="order.partner_phone"/>
+                                            </a>
+                                        </p>
+                                    </t>
+                                    <t t-if="order.partner_mobile">
+                                        <p class="mb-1">
+                                            <i class="fa fa-mobile me-1 text-muted"/>
+                                            <a t-attf-href="tel:#{order.partner_mobile}">
+                                                <t t-out="order.partner_mobile"/>
+                                            </a>
+                                        </p>
+                                    </t>
+                                    <t t-if="order.partner_email">
+                                        <p class="mb-0">
+                                            <i class="fa fa-envelope me-1 text-muted"/>
+                                            <a t-attf-href="mailto:#{order.partner_email}">
+                                                <t t-out="order.partner_email"/>
+                                            </a>
+                                        </p>
+                                    </t>
+                                </div>
+                                <div class="col-sm-6">
+                                    <t t-set="addr" t-value="order.service_address_id or order.partner_id"/>
+                                    <p class="mb-1">
+                                        <i class="fa fa-map-marker me-1 text-muted"/>
+                                        <strong>Dirección del servicio:</strong>
+                                    </p>
+                                    <address class="mb-0">
+                                        <t t-out="addr.street or ''"/>
+                                        <t t-if="addr.city">, <t t-out="addr.city"/></t>
+                                        <t t-if="addr.state_id">, <t t-out="addr.state_id.name"/></t>
+                                        <t t-if="addr.country_id"><br/><t t-out="addr.country_id.name"/></t>
+                                    </address>
+                                    <t t-if="order.service_address_id and order.service_address_id.phone">
+                                        <p class="mt-1 mb-0">
+                                            <i class="fa fa-phone me-1 text-muted"/>
+                                            <a t-attf-href="tel:#{order.service_address_id.phone}">
+                                                <t t-out="order.service_address_id.phone"/>
+                                            </a>
+                                        </p>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: Descripción del Trabajo -->
+                    <t t-if="order.description">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fa fa-clipboard me-2"/>Descripción del Trabajo</h5>
+                            </div>
+                            <div class="card-body">
+                                <t t-out="order.description" t-options="{'widget': 'html'}"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- Card: Materiales y Servicios Utilizados -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fa fa-wrench me-2"/>Materiales y Servicios</h5>
+                            <t t-if="order.state in ('in_progress', 'done')">
+                                <button class="btn btn-sm btn-primary"
+                                        data-bs-toggle="modal" data-bs-target="#addLineModal">
+                                    <i class="fa fa-plus me-1"/> Agregar
+                                </button>
+                            </t>
+                        </div>
+                        <div class="card-body p-0">
+                            <t t-if="order.line_ids">
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Producto / Servicio</th>
+                                                <th class="text-center">Cant.</th>
+                                                <th class="text-end">P. Unit.</th>
+                                                <th class="text-end">Subtotal</th>
+                                                <t t-if="order.state in ('in_progress', 'done')">
+                                                    <th></th>
+                                                </t>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="order.line_ids" t-as="line">
+                                                <tr>
+                                                    <td>
+                                                        <strong><t t-out="line.product_id.name or '—'"/></strong>
+                                                        <t t-if="line.description and line.description != line.product_id.name">
+                                                            <br/><small class="text-muted"><t t-out="line.description"/></small>
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <t t-out="line.qty"/>
+                                                        <t t-if="line.product_uom_id">
+                                                            <small class="text-muted"> <t t-out="line.product_uom_id.name"/></small>
+                                                        </t>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <t t-out="line.price_unit"
+                                                           t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <t t-out="line.price_total"
+                                                           t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                                    </td>
+                                                    <t t-if="order.state in ('in_progress', 'done') and not line.sale_order_line_id">
+                                                        <td class="text-center">
+                                                            <form t-attf-action="/my/field-service/#{order.id}/remove-line/#{line.id}"
+                                                                  method="post" class="d-inline">
+                                                                <input type="hidden" name="csrf_token"
+                                                                       t-att-value="request.csrf_token()"/>
+                                                                <button type="submit" class="btn btn-sm btn-link text-danger p-0"
+                                                                        onclick="return confirm('¿Eliminar esta línea?')"
+                                                                        title="Eliminar">
+                                                                    <i class="fa fa-trash"/>
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </t>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                        <tfoot class="table-light">
+                                            <tr>
+                                                <td colspan="3" class="text-end"><strong>Subtotal s/imp.:</strong></td>
+                                                <td class="text-end">
+                                                    <t t-out="order.amount_untaxed"
+                                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                                </td>
+                                                <t t-if="order.state in ('in_progress', 'done')"><td/></t>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" class="text-end">Impuestos:</td>
+                                                <td class="text-end">
+                                                    <t t-out="order.amount_tax"
+                                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                                </td>
+                                                <t t-if="order.state in ('in_progress', 'done')"><td/></t>
+                                            </tr>
+                                            <tr class="fw-bold">
+                                                <td colspan="3" class="text-end">TOTAL:</td>
+                                                <td class="text-end">
+                                                    <t t-out="order.amount_total"
+                                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                                </td>
+                                                <t t-if="order.state in ('in_progress', 'done')"><td/></t>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="p-3 text-muted text-center">
+                                    <i class="fa fa-inbox fa-2x mb-2 d-block"/>
+                                    No hay materiales o servicios registrados todavía.
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Card: Notas del Técnico -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fa fa-sticky-note me-2"/>Mis Notas</h5>
+                        </div>
+                        <div class="card-body">
+                            <form t-attf-action="/my/field-service/#{order.id}/notes" method="post">
+                                <input type="hidden" name="csrf_token"
+                                       t-att-value="request.csrf_token()"/>
+                                <textarea name="technician_notes" class="form-control mb-2" rows="4"
+                                          placeholder="Observaciones, materiales extra utilizados, condiciones encontradas..."
+                                          t-att-readonly="'readonly' if order.state not in ('in_progress', 'done') else None">
+                                    <t t-out="order.technician_notes or ''"/>
+                                </textarea>
+                                <t t-if="order.state in ('in_progress', 'done')">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fa fa-save me-1"/> Guardar notas
+                                    </button>
+                                </t>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: info adicional + pagos + firma -->
+                <div class="col-lg-5">
+
+                    <!-- Card: Info de la Orden -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fa fa-info-circle me-2"/>Información</h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-5">Tipo:</dt>
+                                <dd class="col-7">
+                                    <t t-out="dict(order._fields['service_type'].selection).get(order.service_type)"/>
+                                </dd>
+                                <dt class="col-5">Responsable:</dt>
+                                <dd class="col-7"><t t-out="order.user_id.name"/></dd>
+                                <t t-if="order.scheduled_date">
+                                    <dt class="col-5">Programado:</dt>
+                                    <dd class="col-7">
+                                        <t t-out="order.scheduled_date" t-options="{'widget': 'datetime'}"/>
+                                    </dd>
+                                </t>
+                                <t t-if="order.start_date">
+                                    <dt class="col-5">Iniciado:</dt>
+                                    <dd class="col-7">
+                                        <t t-out="order.start_date" t-options="{'widget': 'datetime'}"/>
+                                    </dd>
+                                </t>
+                                <t t-if="order.completion_date">
+                                    <dt class="col-5">Completado:</dt>
+                                    <dd class="col-7">
+                                        <t t-out="order.completion_date" t-options="{'widget': 'datetime'}"/>
+                                    </dd>
+                                </t>
+                                <t t-if="order.receipt_number">
+                                    <dt class="col-5">N° Recibo:</dt>
+                                    <dd class="col-7"><strong><t t-out="order.receipt_number"/></strong></dd>
+                                </t>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Card: Cobro en Campo -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fa fa-money me-2"/>Cobros Registrados</h5>
+                            <t t-if="order.state in ('in_progress', 'done')">
+                                <button class="btn btn-sm btn-success"
+                                        data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                    <i class="fa fa-plus me-1"/> Registrar Cobro
+                                </button>
+                            </t>
+                        </div>
+                        <div class="card-body">
+                            <!-- Resumen de montos -->
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total del Servicio:</span>
+                                <strong>
+                                    <t t-out="order.amount_total"
+                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                </strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Cobrado:</span>
+                                <span class="text-success fw-bold">
+                                    <t t-out="order.amount_paid"
+                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                <span>Saldo pendiente:</span>
+                                <span t-att-class="'text-danger fw-bold' if order.amount_due > 0 else 'text-success fw-bold'">
+                                    <t t-out="order.amount_due"
+                                       t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                </span>
+                            </div>
+
+                            <!-- Detalle de pagos -->
+                            <t t-if="order.payment_ids">
+                                <t t-foreach="order.payment_ids" t-as="pay">
+                                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                        <div>
+                                            <small class="badge text-bg-secondary me-1">
+                                                <t t-out="dict(pay._fields['payment_method'].selection).get(pay.payment_method)"/>
+                                            </small>
+                                            <small class="text-muted">
+                                                <t t-out="pay.date" t-options="{'widget': 'date'}"/>
+                                            </small>
+                                            <t t-if="pay.reference">
+                                                <br/><small class="text-muted">Ref: <t t-out="pay.reference"/></small>
+                                            </t>
+                                        </div>
+                                        <span class="fw-bold">
+                                            <t t-out="pay.amount"
+                                               t-options="{'widget': 'monetary', 'display_currency': order.currency_id}"/>
+                                        </span>
+                                    </div>
+                                </t>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted small text-center mb-0">Sin cobros registrados</p>
+                            </t>
+                        </div>
+                    </div>
+
+                    <!-- Card: Firma del Cliente -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fa fa-pencil me-2"/>Firma del Cliente</h5>
+                            <t t-if="order.state in ('in_progress', 'done') and not order.signature">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal" data-bs-target="#signatureModal">
+                                    <i class="fa fa-signature me-1"/> Capturar Firma
+                                </button>
+                            </t>
+                        </div>
+                        <div class="card-body text-center">
+                            <t t-if="order.signature">
+                                <img t-attf-src="data:image/png;base64,#{order.signature.decode()}"
+                                     class="img-fluid border rounded" style="max-height: 120px;"
+                                     alt="Firma del cliente"/>
+                                <p class="mt-2 mb-0 text-muted small">
+                                    Firmado por: <strong><t t-out="order.signed_by"/></strong>
+                                    <t t-if="order.signed_on">
+                                        el <t t-out="order.signed_on" t-options="{'widget': 'datetime'}"/>
+                                    </t>
+                                </p>
+                            </t>
+                            <t t-else="">
+                                <div class="text-muted py-3">
+                                    <i class="fa fa-file-signature fa-2x mb-2 d-block text-muted opacity-50"/>
+                                    <small>Pendiente de firma</small>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                </div><!-- /col-lg-5 -->
+            </div><!-- /row -->
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 MODAL: Agregar Material / Servicio
+            ═══════════════════════════════════════════════════════════════ -->
+            <div class="modal fade" id="addLineModal" tabindex="-1"
+                 aria-labelledby="addLineModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addLineModalLabel">
+                                <i class="fa fa-plus-circle me-2"/>Agregar Material / Servicio
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"/>
+                        </div>
+                        <form t-attf-action="/my/field-service/#{order.id}/add-line" method="post">
+                            <div class="modal-body">
+                                <input type="hidden" name="csrf_token"
+                                       t-att-value="request.csrf_token()"/>
+
+                                <!-- Búsqueda de producto -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Producto / Servicio *</label>
+                                    <input type="text" id="productSearch" class="form-control"
+                                           placeholder="Escriba para buscar..." autocomplete="off"/>
+                                    <div id="productResults" class="fso-product-results border rounded-bottom"/>
+                                    <input type="hidden" name="product_id" id="productId"/>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-sm-6 mb-3">
+                                        <label class="form-label fw-bold">Cantidad *</label>
+                                        <input type="number" name="qty" id="productQty"
+                                               class="form-control" value="1" min="0.001" step="0.001" required/>
+                                    </div>
+                                    <div class="col-sm-6 mb-3">
+                                        <label class="form-label fw-bold">Precio Unitario</label>
+                                        <input type="number" name="price_unit" id="productPrice"
+                                               class="form-control" value="0.00" min="0" step="0.01"/>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Descripción adicional</label>
+                                    <textarea name="description" class="form-control" rows="2"
+                                              placeholder="Detalle del uso o trabajo realizado..."/>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary" id="btnAddLine">
+                                    <i class="fa fa-plus me-1"/> Agregar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 MODAL: Registrar Cobro
+            ═══════════════════════════════════════════════════════════════ -->
+            <div class="modal fade" id="paymentModal" tabindex="-1"
+                 aria-labelledby="paymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="paymentModalLabel">
+                                <i class="fa fa-money me-2"/>Registrar Cobro en Campo
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"/>
+                        </div>
+                        <form t-attf-action="/my/field-service/#{order.id}/payment" method="post">
+                            <div class="modal-body">
+                                <input type="hidden" name="csrf_token"
+                                       t-att-value="request.csrf_token()"/>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Método de Pago *</label>
+                                    <select name="payment_method" class="form-select" required>
+                                        <option value="cash">💵 Efectivo</option>
+                                        <option value="credit_card">💳 Tarjeta de Crédito</option>
+                                        <option value="debit_card">💳 Tarjeta de Débito</option>
+                                        <option value="transfer">🏦 Transferencia Bancaria</option>
+                                        <option value="check">📝 Cheque</option>
+                                        <option value="other">Otro</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Importe *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <t t-out="order.currency_id.symbol"/>
+                                        </span>
+                                        <input type="number" name="amount" class="form-control"
+                                               t-att-value="order.amount_due if order.amount_due > 0 else order.amount_total"
+                                               min="0.01" step="0.01" required/>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">N° de Referencia / Autorización</label>
+                                    <input type="text" name="reference" class="form-control"
+                                           placeholder="N° de transacción, autorización de tarjeta..."/>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Notas</label>
+                                    <textarea name="notes" class="form-control" rows="2"/>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-check me-1"/> Confirmar Cobro
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════
+                 MODAL: Firma del Cliente
+            ═══════════════════════════════════════════════════════════════ -->
+            <div class="modal fade" id="signatureModal" tabindex="-1"
+                 aria-labelledby="signatureModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="signatureModalLabel">
+                                <i class="fa fa-pencil-square me-2"/>Firma de Conformidad del Cliente
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"/>
+                        </div>
+                        <form id="signatureForm"
+                              t-attf-action="/my/field-service/#{order.id}/sign" method="post">
+                            <div class="modal-body">
+                                <input type="hidden" name="csrf_token"
+                                       t-att-value="request.csrf_token()"/>
+                                <input type="hidden" name="signature" id="signatureData"/>
+
+                                <!-- Texto de conformidad -->
+                                <div class="alert alert-light border mb-3">
+                                    <p class="mb-0 small">
+                                        Al firmar, el cliente confirma que el trabajo descrito en la orden
+                                        <strong><t t-out="order.name"/></strong> fue realizado a su conformidad
+                                        y acepta los términos del servicio prestado.
+                                    </p>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Nombre del Firmante *</label>
+                                    <input type="text" name="signed_by" id="signedBy"
+                                           class="form-control"
+                                           placeholder="Nombre completo de quien firma"
+                                           required/>
+                                </div>
+
+                                <!-- Canvas de firma -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Firma *</label>
+                                    <div class="fso-signature-container border rounded bg-white"
+                                         style="position: relative;">
+                                        <canvas id="signaturePad"
+                                                class="w-100 d-block"
+                                                style="height: 200px; cursor: crosshair; touch-action: none;">
+                                        </canvas>
+                                        <p class="fso-sig-placeholder text-muted small text-center position-absolute w-100"
+                                           style="top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                            Firme aquí
+                                        </p>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-muted">Use el dedo o mouse para firmar</small>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                id="clearSignature">
+                                            <i class="fa fa-eraser me-1"/> Borrar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" id="saveSignature">
+                                    <i class="fa fa-save me-1"/> Guardar Firma
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </t>
+    </template>
+
+</odoo>

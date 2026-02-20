@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         MENÚ PRINCIPAL
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <menuitem id="menu_field_service_root"
+              name="Servicios en Campo"
+              sequence="80"
+              web_icon="hojas_de_trabajo,static/description/icon.png"
+              groups="group_field_service_user,group_field_service_manager"/>
+
+    <!-- Órdenes -->
+    <menuitem id="menu_fso_orders"
+              name="Órdenes de Servicio"
+              parent="menu_field_service_root"
+              sequence="10"/>
+
+    <menuitem id="menu_fso_all"
+              name="Todas las Órdenes"
+              parent="menu_fso_orders"
+              action="action_field_service_orders"
+              sequence="10"
+              groups="group_field_service_manager"/>
+
+    <menuitem id="menu_fso_my"
+              name="Mis Órdenes"
+              parent="menu_fso_orders"
+              action="action_field_service_orders"
+              sequence="20"
+              groups="group_field_service_user"/>
+
+    <menuitem id="menu_fso_assignments"
+              name="Mis Asignaciones"
+              parent="menu_fso_orders"
+              action="action_fso_my_assignments"
+              sequence="30"
+              groups="group_field_service_user,group_field_service_manager"/>
+
+    <!-- Configuración -->
+    <menuitem id="menu_fso_config"
+              name="Configuración"
+              parent="menu_field_service_root"
+              sequence="90"
+              groups="group_field_service_manager"/>
+
+</odoo>

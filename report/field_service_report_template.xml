@@ -1,0 +1,415 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PLANILLA DE TRABAJO (documento para el técnico)
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_fso_workorder_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Encabezado -->
+                        <div class="row mb-4">
+                            <div class="col-7">
+                                <h2>Planilla de Trabajo</h2>
+                                <h3 class="text-muted"><t t-out="o.name"/></h3>
+                            </div>
+                            <div class="col-5 text-end">
+                                <t t-set="state_colors" t-value="{
+                                    'draft': '#6c757d',
+                                    'assigned': '#0dcaf0',
+                                    'in_progress': '#0d6efd',
+                                    'done': '#ffc107',
+                                    'invoiced': '#198754',
+                                    'cancelled': '#dc3545',
+                                }"/>
+                                <span style="font-size: 1.1em; font-weight: bold; padding: 6px 12px; border-radius: 4px; color: white;"
+                                      t-attf-style="background-color: #{state_colors.get(o.state, '#6c757d')};">
+                                    <t t-out="dict(o._fields['state'].selection).get(o.state)"/>
+                                </span>
+                                <br/><br/>
+                                <t t-if="o.priority == '1'">
+                                    <span style="color: #dc3545; font-weight: bold;">⚠ URGENTE</span>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Info principal -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <table class="table table-sm table-bordered">
+                                    <tr>
+                                        <th class="bg-light" style="width: 40%">Tipo de Servicio</th>
+                                        <td><t t-out="dict(o._fields['service_type'].selection).get(o.service_type)"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">Responsable</th>
+                                        <td><t t-out="o.user_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">Técnico</th>
+                                        <td><t t-out="o.technician_id.name or '—'"/></td>
+                                    </tr>
+                                    <tr>
+                                        <th class="bg-light">Fecha Programada</th>
+                                        <td>
+                                            <t t-if="o.scheduled_date">
+                                                <t t-out="o.scheduled_date" t-options="{'widget': 'datetime'}"/>
+                                            </t>
+                                            <t t-else="">—</t>
+                                        </td>
+                                    </tr>
+                                    <t t-if="o.sale_order_id">
+                                        <tr>
+                                            <th class="bg-light">Orden de Venta</th>
+                                            <td><t t-out="o.sale_order_id.name"/></td>
+                                        </tr>
+                                    </t>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h5>Cliente</h5>
+                                <address>
+                                    <strong><t t-out="o.partner_id.name"/></strong><br/>
+                                    <t t-if="o.partner_phone">Tel: <t t-out="o.partner_phone"/><br/></t>
+                                    <t t-if="o.partner_mobile">Cel: <t t-out="o.partner_mobile"/><br/></t>
+                                    <t t-if="o.partner_email"><t t-out="o.partner_email"/><br/></t>
+                                </address>
+                                <t t-if="o.service_address_id">
+                                    <h6>Dirección del Servicio:</h6>
+                                    <address>
+                                        <t t-out="o.service_address_id.street or ''"/><br/>
+                                        <t t-out="(o.service_address_id.city or '') + ', ' + (o.service_address_id.state_id.name or '')"/>
+                                    </address>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Descripción del trabajo -->
+                        <t t-if="o.description">
+                            <div class="mb-4">
+                                <h5>Descripción del Trabajo</h5>
+                                <div class="border rounded p-3" style="background-color: #f8f9fa;">
+                                    <t t-out="o.description" t-options="{'widget': 'html'}"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Materiales y servicios -->
+                        <div class="mb-4">
+                            <h5>Materiales y Servicios Utilizados</h5>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Producto / Servicio</th>
+                                        <th class="text-center" style="width: 80px;">Cant.</th>
+                                        <th class="text-center" style="width: 70px;">Unidad</th>
+                                        <th class="text-end" style="width: 100px;">P. Unit.</th>
+                                        <th class="text-end" style="width: 110px;">Total c/imp.</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-if="o.line_ids">
+                                        <t t-foreach="o.line_ids" t-as="line">
+                                            <tr>
+                                                <td>
+                                                    <strong><t t-out="line.product_id.name or '—'"/></strong>
+                                                    <t t-if="line.description and line.description != line.product_id.name">
+                                                        <br/><small class="text-muted"><t t-out="line.description"/></small>
+                                                    </t>
+                                                </td>
+                                                <td class="text-center"><t t-out="line.qty"/></td>
+                                                <td class="text-center"><t t-out="line.product_uom_id.name or ''"/></td>
+                                                <td class="text-end">
+                                                    <t t-out="line.price_unit"
+                                                       t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                                </td>
+                                                <td class="text-end">
+                                                    <t t-out="line.price_total"
+                                                       t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </t>
+                                    <t t-else="">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                Sin materiales/servicios registrados todavía
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" class="text-end">Subtotal:</td>
+                                        <td class="text-end">
+                                            <t t-out="o.amount_untaxed"
+                                               t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-end">Impuestos:</td>
+                                        <td class="text-end">
+                                            <t t-out="o.amount_tax"
+                                               t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-dark">
+                                        <td colspan="4" class="text-end"><strong>TOTAL:</strong></td>
+                                        <td class="text-end">
+                                            <strong>
+                                                <t t-out="o.amount_total"
+                                                   t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Notas del técnico -->
+                        <t t-if="o.technician_notes">
+                            <div class="mb-4">
+                                <h5>Notas del Técnico</h5>
+                                <div class="border rounded p-3">
+                                    <t t-out="o.technician_notes"/>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Sección de firma -->
+                        <div class="row mt-5">
+                            <div class="col-6">
+                                <t t-if="o.signature">
+                                    <p><strong>Firma del Cliente:</strong></p>
+                                    <img t-attf-src="data:image/png;base64,#{o.signature.decode()}"
+                                         style="max-height: 100px; max-width: 300px; border-bottom: 1px solid #333;"/>
+                                    <p class="mt-2 mb-0">
+                                        <strong><t t-out="o.signed_by"/></strong>
+                                    </p>
+                                    <t t-if="o.signed_on">
+                                        <small>Fecha: <t t-out="o.signed_on" t-options="{'widget': 'datetime'}"/></small>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <p><strong>Firma del Cliente:</strong></p>
+                                    <div style="height: 80px; border-bottom: 1px solid #333; margin-bottom: 8px;"/>
+                                    <p>Nombre: ___________________________</p>
+                                    <p>Fecha: ____________________________</p>
+                                </t>
+                            </div>
+                            <div class="col-6 text-end">
+                                <p><strong>Firma del Técnico:</strong></p>
+                                <div style="height: 80px; border-bottom: 1px solid #333; margin-bottom: 8px;"/>
+                                <p>Nombre: <t t-out="o.technician_id.name or '_______________'"/></p>
+                                <p>Fecha: ____________________________</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         RECIBO DE PAGO
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <template id="report_fso_receipt_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+
+                        <!-- Encabezado del recibo -->
+                        <div class="row mb-4">
+                            <div class="col-12 text-center">
+                                <h2 style="color: #198754;">RECIBO DE SERVICIO</h2>
+                                <h3 class="text-muted">
+                                    <t t-out="o.receipt_number or o.name"/>
+                                </h3>
+                                <t t-if="o.completion_date">
+                                    <p class="text-muted">
+                                        Fecha: <t t-out="o.completion_date" t-options="{'widget': 'datetime'}"/>
+                                    </p>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Datos del cliente -->
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <h5>Emitido a:</h5>
+                                <p>
+                                    <strong><t t-out="o.partner_id.name"/></strong><br/>
+                                    <t t-if="o.partner_id.vat">
+                                        RUC/CUIT/NIT: <t t-out="o.partner_id.vat"/><br/>
+                                    </t>
+                                    <t t-if="o.partner_phone">Tel: <t t-out="o.partner_phone"/><br/></t>
+                                    <t t-if="o.partner_email"><t t-out="o.partner_email"/></t>
+                                </p>
+                            </div>
+                            <div class="col-6 text-end">
+                                <h5>Orden de Servicio:</h5>
+                                <p>
+                                    <strong><t t-out="o.name"/></strong><br/>
+                                    Tipo: <t t-out="dict(o._fields['service_type'].selection).get(o.service_type)"/><br/>
+                                    Técnico: <t t-out="o.technician_id.name or '—'"/>
+                                    <t t-if="o.sale_order_id">
+                                        <br/>OV: <t t-out="o.sale_order_id.name"/>
+                                    </t>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Detalle de servicios -->
+                        <div class="mb-4">
+                            <h5>Detalle</h5>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Descripción</th>
+                                        <th class="text-center" style="width: 80px;">Cant.</th>
+                                        <th class="text-end" style="width: 110px;">P. Unit.</th>
+                                        <th class="text-end" style="width: 110px;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="o.line_ids" t-as="line">
+                                        <tr>
+                                            <td>
+                                                <t t-out="line.product_id.name or line.description or '—'"/>
+                                                <t t-if="line.description and line.description != line.product_id.name">
+                                                    <br/><small class="text-muted"><t t-out="line.description"/></small>
+                                                </t>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-out="line.qty"/>
+                                                <t t-if="line.product_uom_id"> <t t-out="line.product_uom_id.name"/></t>
+                                            </td>
+                                            <td class="text-end">
+                                                <t t-out="line.price_unit"
+                                                   t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <t t-out="line.price_subtotal"
+                                                   t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" class="text-end">Subtotal:</td>
+                                        <td class="text-end">
+                                            <t t-out="o.amount_untaxed"
+                                               t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-end">Impuestos:</td>
+                                        <td class="text-end">
+                                            <t t-out="o.amount_tax"
+                                               t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td colspan="3" class="text-end"><strong>TOTAL DEL SERVICIO:</strong></td>
+                                        <td class="text-end fw-bold">
+                                            <t t-out="o.amount_total"
+                                               t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Detalle de pagos recibidos -->
+                        <div class="mb-4">
+                            <h5>Pagos Recibidos</h5>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Método</th>
+                                        <th>Referencia</th>
+                                        <th class="text-end">Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="o.payment_ids.filtered(lambda p: p.state == 'done')" t-as="pay">
+                                        <tr>
+                                            <td><t t-out="pay.date" t-options="{'widget': 'date'}"/></td>
+                                            <td><t t-out="dict(pay._fields['payment_method'].selection).get(pay.payment_method)"/></td>
+                                            <td><t t-out="pay.reference or '—'"/></td>
+                                            <td class="text-end">
+                                                <t t-out="pay.amount"
+                                                   t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="fw-bold">
+                                        <td colspan="3" class="text-end">TOTAL COBRADO:</td>
+                                        <td class="text-end text-success">
+                                            <t t-out="o.amount_paid"
+                                               t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                    <t t-if="o.amount_due > 0">
+                                        <tr>
+                                            <td colspan="3" class="text-end text-danger">Saldo Pendiente:</td>
+                                            <td class="text-end text-danger fw-bold">
+                                                <t t-out="o.amount_due"
+                                                   t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Firma -->
+                        <t t-if="o.signature">
+                            <div class="row mt-4 pt-3 border-top">
+                                <div class="col-5">
+                                    <p class="mb-1"><strong>Firma de conformidad:</strong></p>
+                                    <img t-attf-src="data:image/png;base64,#{o.signature.decode()}"
+                                         style="max-height: 80px; max-width: 250px;"/>
+                                    <p class="mt-1 mb-0">
+                                        <strong><t t-out="o.signed_by"/></strong>
+                                        <t t-if="o.signed_on">
+                                            <br/><small class="text-muted">
+                                                <t t-out="o.signed_on" t-options="{'widget': 'datetime'}"/>
+                                            </small>
+                                        </t>
+                                    </p>
+                                </div>
+                                <div class="col-7 text-muted small">
+                                    <p>
+                                        Al firmar el cliente confirma que el servicio fue realizado
+                                        a su entera conformidad.
+                                    </p>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- Pie de recibo -->
+                        <div class="text-center mt-4 text-muted small border-top pt-3">
+                            <p><t t-out="o.company_id.name"/> – <t t-out="o.company_id.phone or ''"/>
+                            <t t-if="o.company_id.email"> – <t t-out="o.company_id.email"/></t></p>
+                            <t t-if="o.company_id.website">
+                                <p><t t-out="o.company_id.website"/></p>
+                            </t>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

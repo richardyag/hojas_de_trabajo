@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Template: Notificación de asignación al técnico -->
+    <record id="mail_template_fso_portal_link" model="mail.template">
+        <field name="name">Orden de Servicio – Asignación a Técnico</field>
+        <field name="model_id" ref="model_field_service_order"/>
+        <field name="subject">Orden de Servicio {{object.name}} asignada – {{object.company_id.name}}</field>
+        <field name="email_to">{{object.technician_id.partner_id.email}}</field>
+        <field name="email_from">{{(object.company_id.email or user.email) | safe}}</field>
+        <field name="body_html" type="html">
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+                <h2 style="color: #2c6fad;">Nueva Orden de Servicio Asignada</h2>
+                <p>Hola <strong>{{object.technician_id.name}}</strong>,</p>
+                <p>Se te ha asignado la siguiente orden de servicio:</p>
+                <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Referencia:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{object.name}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Cliente:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{object.partner_id.name}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Tipo:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{object.service_type}}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Fecha programada:</strong></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                            {{object.scheduled_date and object.scheduled_date | format_datetime(dt_format='medium', lang_code=object.partner_id.lang) or 'Por definir'}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Dirección:</strong></td>
+                        <td style="padding: 8px;">
+                            {{(object.service_address_id or object.partner_id).contact_address}}
+                        </td>
+                    </tr>
+                </table>
+                <p style="text-align: center; margin: 24px 0;">
+                    <a href="{{object.access_url}}"
+                       style="background-color: #2c6fad; color: white; padding: 12px 28px;
+                              text-decoration: none; border-radius: 4px; font-size: 16px;">
+                        Acceder a mi Orden de Servicio
+                    </a>
+                </p>
+                <p style="color: #666; font-size: 12px;">
+                    Si el botón no funciona, copia este enlace en tu navegador:<br/>
+                    <a href="{{object.access_url}}">{{object.access_url}}</a>
+                </p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;"/>
+                <p style="color: #999; font-size: 11px;">{{object.company_id.name}}</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

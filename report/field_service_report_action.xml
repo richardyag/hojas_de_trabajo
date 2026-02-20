@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Reporte: Planilla de Trabajo (para el técnico) -->
+    <record id="action_report_fso_workorder" model="ir.actions.report">
+        <field name="name">Planilla de Trabajo</field>
+        <field name="model">field.service.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hojas_de_trabajo.report_fso_workorder_template</field>
+        <field name="report_file">hojas_de_trabajo.report_fso_workorder_template</field>
+        <field name="print_report_name">'Planilla-%s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_field_service_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Reporte: Recibo de Pago -->
+    <record id="action_report_fso_receipt" model="ir.actions.report">
+        <field name="name">Recibo de Servicio</field>
+        <field name="model">field.service.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">hojas_de_trabajo.report_fso_receipt_template</field>
+        <field name="report_file">hojas_de_trabajo.report_fso_receipt_template</field>
+        <field name="print_report_name">'Recibo-%s' % (object.receipt_number or object.name)</field>
+        <field name="binding_model_id" ref="model_field_service_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

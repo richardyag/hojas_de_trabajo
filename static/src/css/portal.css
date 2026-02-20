@@ -1,0 +1,115 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   FSO Portal Styles – Hojas de Trabajo / Field Service
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Canvas de Firma ──────────────────────────────────────────────────────── */
+.fso-signature-container {
+    position: relative;
+    background: #ffffff;
+    border: 2px dashed #ced4da !important;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.fso-signature-container:hover,
+.fso-signature-container:focus-within {
+    border-color: #0d6efd !important;
+}
+
+#signaturePad {
+    display: block;
+    width: 100%;
+    height: 200px;
+    cursor: crosshair;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.fso-sig-placeholder {
+    pointer-events: none;
+    color: #adb5bd;
+    font-size: 0.9rem;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    text-align: center;
+}
+
+/* ── Resultados de búsqueda de productos ─────────────────────────────────── */
+.fso-product-results {
+    position: relative;
+    z-index: 1050;
+    background: #fff;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.fso-product-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+    transition: background-color 0.1s;
+}
+
+.fso-product-item:last-child {
+    border-bottom: none;
+}
+
+.fso-product-item:hover {
+    background-color: #e8f4fd;
+}
+
+/* ── Cards del portal ────────────────────────────────────────────────────── */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+}
+
+/* ── Badge de estado ─────────────────────────────────────────────────────── */
+.fso-state-badge {
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+}
+
+/* ── Tabla de materiales ─────────────────────────────────────────────────── */
+.fso-lines-table th,
+.fso-lines-table td {
+    vertical-align: middle;
+}
+
+/* ── Resumen de montos ───────────────────────────────────────────────────── */
+.fso-amounts dl dt {
+    font-weight: 600;
+}
+
+/* ── Responsive: ocultar columnas en móvil ───────────────────────────────── */
+@media (max-width: 576px) {
+    .fso-hide-mobile {
+        display: none !important;
+    }
+
+    #signaturePad {
+        height: 160px;
+    }
+}
+
+/* ── Botones de acción en cabecera ───────────────────────────────────────── */
+.fso-action-bar {
+    gap: 0.5rem;
+}
+
+/* ── Animación de carga ──────────────────────────────────────────────────── */
+.fso-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}

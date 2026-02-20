@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         VISTA FORMULARIO – Orden de Servicio
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_fso_form" model="ir.ui.view">
+        <field name="name">field.service.order.form</field>
+        <field name="model">field.service.order</field>
+        <field name="arch" type="xml">
+            <form string="Orden de Servicio">
+                <header>
+                    <!-- Botones de flujo -->
+                    <button name="button_assign" string="Asignar a Técnico"
+                            type="object" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="button_start" string="Iniciar"
+                            type="object" class="btn-primary"
+                            invisible="state not in ('draft', 'assigned')"/>
+                    <button name="button_done" string="Marcar como Completado"
+                            type="object" class="btn-primary"
+                            invisible="state != 'in_progress'"/>
+                    <button name="button_invoice" string="Cerrar / Cobrado"
+                            type="object" class="btn-success"
+                            invisible="state != 'done'"/>
+                    <button name="button_cancel" string="Cancelar"
+                            type="object" class="btn-secondary"
+                            invisible="state in ('invoiced', 'cancelled')"/>
+                    <button name="button_reset" string="Restablecer"
+                            type="object"
+                            invisible="state != 'cancelled'"/>
+                    <!-- Acciones adicionales -->
+                    <button name="action_send_portal_link" string="Enviar Link al Técnico"
+                            type="object" class="btn-secondary"
+                            invisible="state not in ('assigned', 'in_progress')"/>
+                    <button name="action_open_signature_wizard" string="Capturar Firma"
+                            type="object" class="btn-secondary"
+                            invisible="state not in ('in_progress', 'done')"/>
+                    <widget name="statusbar"
+                            statusbar_visible="draft,assigned,in_progress,done,invoiced"/>
+                </header>
+
+                <sheet>
+                    <!-- Firma capturada -->
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object"
+                                name="action_print_workorder" icon="fa-print"
+                                string="Planilla"/>
+                        <button class="oe_stat_button" type="object"
+                                name="action_print_receipt" icon="fa-file-text-o"
+                                string="Recibo"
+                                invisible="not receipt_number"/>
+                        <button class="oe_stat_button" type="object"
+                                name="action_view_sale_order" icon="fa-shopping-cart"
+                                string="Orden Venta"
+                                invisible="not sale_order_id"/>
+                    </div>
+
+                    <!-- Firma -->
+                    <div class="oe_right" invisible="not signature">
+                        <field name="signature" widget="image"
+                               options="{'size': [200, 80]}"
+                               string="Firma del Cliente"/>
+                        <div>
+                            <small class="text-muted">
+                                Firmado por: <field name="signed_by" readonly="1" nolabel="1"/>
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="oe_title">
+                        <label for="name" string="Referencia"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Información Principal">
+                            <field name="service_type"/>
+                            <field name="priority" widget="priority"/>
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="service_address_id"
+                                   domain="['|', ('id', '=', partner_id), ('parent_id', '=', partner_id)]"/>
+                            <field name="sale_order_id"
+                                   domain="[('partner_id', 'child_of', partner_id), ('state', 'in', ['sale','done'])]"/>
+                        </group>
+                        <group string="Responsables y Fechas">
+                            <field name="user_id"/>
+                            <field name="technician_id"/>
+                            <field name="scheduled_date"/>
+                            <field name="start_date" readonly="1"/>
+                            <field name="completion_date" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+
+                    <!-- Datos de contacto del cliente -->
+                    <group string="Datos de Contacto del Cliente">
+                        <group>
+                            <field name="partner_phone" readonly="1"/>
+                            <field name="partner_mobile" readonly="1"/>
+                            <field name="partner_email" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="partner_street" readonly="1"/>
+                            <field name="partner_city" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <!-- Pestaña: Descripción -->
+                        <page string="Descripción del Trabajo" name="description">
+                            <field name="description" placeholder="Descripción detallada del trabajo a realizar..."/>
+                        </page>
+
+                        <!-- Pestaña: Materiales y Servicios -->
+                        <page string="Materiales y Servicios" name="lines">
+                            <field name="line_ids" widget="one2many">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id" options="{'no_create': True}"/>
+                                    <field name="description"/>
+                                    <field name="qty"/>
+                                    <field name="product_uom_id" options="{'no_create': True}"/>
+                                    <field name="price_unit"/>
+                                    <field name="tax_ids" widget="many2many_tags"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="price_total"/>
+                                    <field name="sale_order_line_id" readonly="1" optional="hide"/>
+                                </tree>
+                            </field>
+
+                            <div class="oe_subtotal_footer oe_right">
+                                <table class="oe_subtotal_footer">
+                                    <tr>
+                                        <td><label for="amount_untaxed" string="Base Imponible:"/></td>
+                                        <td class="oe_subtotal_footer_separator">
+                                            <field name="amount_untaxed" readonly="1"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="amount_tax" string="Impuestos:"/></td>
+                                        <td><field name="amount_tax" readonly="1"/></td>
+                                    </tr>
+                                    <tr class="oe_subtotal_footer_separator">
+                                        <td><strong>Total:</strong></td>
+                                        <td><field name="amount_total" readonly="1" class="oe_subtotal_footer_separator"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><label for="amount_paid" string="Pagado:"/></td>
+                                        <td><field name="amount_paid" readonly="1"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Saldo Pendiente:</strong></td>
+                                        <td><field name="amount_due" readonly="1" class="text-danger"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="clear: both;"/>
+                        </page>
+
+                        <!-- Pestaña: Pagos -->
+                        <page string="Pagos en Campo" name="payments">
+                            <field name="payment_ids" widget="one2many">
+                                <tree>
+                                    <field name="date"/>
+                                    <field name="payment_method"/>
+                                    <field name="amount"/>
+                                    <field name="reference"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-warning="state == 'draft'"
+                                           decoration-danger="state == 'cancel'"/>
+                                    <field name="receipt_number"/>
+                                    <button name="action_confirm" type="object"
+                                            string="Confirmar" class="btn-success btn-sm"
+                                            invisible="state != 'draft'"/>
+                                    <button name="action_create_account_payment" type="object"
+                                            string="Registrar en Cont." class="btn-sm"
+                                            invisible="state != 'done' or account_payment_id"/>
+                                </tree>
+                            </field>
+                            <div>
+                                <field name="receipt_number" readonly="1"
+                                       invisible="not receipt_number"
+                                       string="N° Recibo generado:"/>
+                            </div>
+                        </page>
+
+                        <!-- Pestaña: Firma -->
+                        <page string="Firma del Cliente" name="signature">
+                            <group>
+                                <field name="signed_by" readonly="1"/>
+                                <field name="signed_on" readonly="1"/>
+                            </group>
+                            <field name="signature" widget="image"
+                                   options="{'size': [400, 150]}"
+                                   invisible="not signature"/>
+                            <div invisible="signature">
+                                <p class="text-muted">
+                                    <i class="fa fa-info-circle"/> Aún no se ha capturado la firma del cliente.
+                                    Use el botón <strong>"Capturar Firma"</strong> del encabezado.
+                                </p>
+                            </div>
+                        </page>
+
+                        <!-- Pestaña: Notas -->
+                        <page string="Notas" name="notes">
+                            <group string="Notas del Técnico">
+                                <field name="technician_notes" nolabel="1"
+                                       placeholder="Observaciones del técnico..."/>
+                            </group>
+                            <group string="Notas Internas">
+                                <field name="internal_notes" nolabel="1"
+                                       placeholder="Información interna (no visible en portal ni recibo)..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- Chatter -->
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         VISTA LISTA
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_fso_tree" model="ir.ui.view">
+        <field name="name">field.service.order.tree</field>
+        <field name="model">field.service.order</field>
+        <field name="arch" type="xml">
+            <list string="Órdenes de Servicio"
+                  decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'invoiced'"
+                  decoration-warning="state == 'done'"
+                  decoration-info="state in ('assigned', 'in_progress')">
+                <field name="priority" widget="priority" nolabel="1" optional="show"/>
+                <field name="name"/>
+                <field name="service_type"/>
+                <field name="partner_id"/>
+                <field name="technician_id"/>
+                <field name="scheduled_date"/>
+                <field name="amount_total" optional="show"/>
+                <field name="amount_due" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'invoiced'"
+                       decoration-warning="state == 'done'"
+                       decoration-info="state in ('assigned', 'in_progress')"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         VISTA KANBAN
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_fso_kanban" model="ir.ui.view">
+        <field name="name">field.service.order.kanban</field>
+        <field name="model">field.service.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column"
+                    records_draggable="0">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="technician_id"/>
+                <field name="scheduled_date"/>
+                <field name="service_type"/>
+                <field name="priority"/>
+                <field name="amount_total"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                        <span class="o_kanban_record_subtitle">
+                                            <field name="service_type"/>
+                                        </span>
+                                    </div>
+                                    <field name="priority" widget="priority"/>
+                                </div>
+                                <div class="o_kanban_record_body">
+                                    <field name="partner_id"/>
+                                    <div t-if="record.scheduled_date.value">
+                                        <i class="fa fa-calendar"/> <field name="scheduled_date" widget="date"/>
+                                    </div>
+                                </div>
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <field name="amount_total" widget="monetary"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <field name="technician_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         VISTA BÚSQUEDA
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_fso_search" model="ir.ui.view">
+        <field name="name">field.service.order.search</field>
+        <field name="model">field.service.order</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Órdenes de Servicio">
+                <field name="name" string="Referencia"/>
+                <field name="partner_id"/>
+                <field name="technician_id"/>
+                <field name="user_id"/>
+                <filter string="Mis Órdenes" name="my_orders"
+                        domain="[('user_id', '=', uid)]"/>
+                <filter string="Mis Asignaciones" name="my_assignments"
+                        domain="[('technician_id', '=', uid)]"/>
+                <separator/>
+                <filter string="Borrador" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Asignadas" name="assigned"
+                        domain="[('state', '=', 'assigned')]"/>
+                <filter string="En Curso" name="in_progress"
+                        domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completadas" name="done"
+                        domain="[('state', '=', 'done')]"/>
+                <filter string="Facturadas" name="invoiced"
+                        domain="[('state', '=', 'invoiced')]"/>
+                <separator/>
+                <filter string="Urgentes" name="urgent"
+                        domain="[('priority', '=', '1')]"/>
+                <filter string="Hoy" name="today"
+                        domain="[('scheduled_date', '&gt;=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                                  ('scheduled_date', '&lt;', datetime.datetime.combine(context_today() + datetime.timedelta(days=1), datetime.time(0,0,0)))]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Tipo de Servicio" name="group_type"
+                            context="{'group_by': 'service_type'}"/>
+                    <filter string="Técnico" name="group_technician"
+                            context="{'group_by': 'technician_id'}"/>
+                    <filter string="Cliente" name="group_partner"
+                            context="{'group_by': 'partner_id'}"/>
+                    <filter string="Fecha Programada" name="group_date"
+                            context="{'group_by': 'scheduled_date:week'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         ACCIÓN PRINCIPAL
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="action_field_service_orders" model="ir.actions.act_window">
+        <field name="name">Órdenes de Servicio</field>
+        <field name="res_model">field.service.order</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_fso_search"/>
+        <field name="context">{'search_default_my_orders': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Cree su primera orden de servicio!
+            </p>
+            <p>
+                Gestione las órdenes de servicio en campo, asigne técnicos
+                y realice el seguimiento completo del trabajo.
+            </p>
+        </field>
+    </record>
+
+    <!-- Vista de mis asignaciones (para técnicos internos) -->
+    <record id="action_fso_my_assignments" model="ir.actions.act_window">
+        <field name="name">Mis Órdenes Asignadas</field>
+        <field name="res_model">field.service.order</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="domain">[('technician_id', '=', uid)]</field>
+        <field name="context">{'search_default_in_progress': 1}</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         WIZARD FIRMA
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <record id="view_fso_signature_wizard" model="ir.ui.view">
+        <field name="name">fso.signature.wizard.form</field>
+        <field name="model">fso.signature.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Capturar Firma del Cliente">
+                <sheet>
+                    <group>
+                        <field name="order_name" readonly="1" string="Orden:"/>
+                        <field name="partner_name" readonly="1" string="Cliente:"/>
+                        <field name="signed_by" placeholder="Nombre completo del firmante"/>
+                    </group>
+                    <separator string="Texto de Conformidad"/>
+                    <field name="signature_text" nolabel="1"/>
+                    <separator string="Firma"/>
+                    <field name="signature" widget="signature" options="{'size': [400, 200]}"/>
+                </sheet>
+                <footer>
+                    <button name="action_sign" string="Guardar Firma"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
