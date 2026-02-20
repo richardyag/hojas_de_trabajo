@@ -8,7 +8,7 @@
               name="Servicios en Campo"
               sequence="80"
               web_icon="hojas_de_trabajo,static/description/icon.png"
-              groups="group_field_service_user,group_field_service_manager"/>
+              groups="base.group_user"/>
 
     <!-- Órdenes -->
     <menuitem id="menu_fso_orders"
@@ -28,14 +28,14 @@
               parent="menu_fso_orders"
               action="action_field_service_orders"
               sequence="20"
-              groups="group_field_service_user"/>
+              groups="base.group_user"/>
 
     <menuitem id="menu_fso_assignments"
               name="Mis Asignaciones"
               parent="menu_fso_orders"
               action="action_fso_my_assignments"
               sequence="30"
-              groups="group_field_service_user,group_field_service_manager"/>
+              groups="base.group_user"/>
 
     <!-- Configuración -->
     <menuitem id="menu_fso_config"

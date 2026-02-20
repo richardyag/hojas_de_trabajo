@@ -1,12 +1,12 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_fso_manager,fso.manager,model_field_service_order,group_field_service_manager,1,1,1,1
-access_fso_user,fso.user,model_field_service_order,group_field_service_user,1,1,1,0
+access_fso_user,fso.user,model_field_service_order,base.group_user,1,1,1,0
 access_fso_portal,fso.portal,model_field_service_order,base.group_portal,1,0,0,0
 access_fsl_manager,fsl.manager,model_field_service_line,group_field_service_manager,1,1,1,1
-access_fsl_user,fsl.user,model_field_service_line,group_field_service_user,1,1,1,1
+access_fsl_user,fsl.user,model_field_service_line,base.group_user,1,1,1,1
 access_fsl_portal,fsl.portal,model_field_service_line,base.group_portal,1,0,0,0
 access_fsp_manager,fsp.manager,model_field_service_payment,group_field_service_manager,1,1,1,1
-access_fsp_user,fsp.user,model_field_service_payment,group_field_service_user,1,1,1,0
+access_fsp_user,fsp.user,model_field_service_payment,base.group_user,1,1,1,0
 access_fsp_portal,fsp.portal,model_field_service_payment,base.group_portal,1,0,0,0
 access_fsw_manager,fsw.manager,model_fso_signature_wizard,group_field_service_manager,1,1,1,1
-access_fsw_user,fsw.user,model_fso_signature_wizard,group_field_service_user,1,1,1,1
+access_fsw_user,fsw.user,model_fso_signature_wizard,base.group_user,1,1,1,1
