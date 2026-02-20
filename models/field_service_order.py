@@ -189,7 +189,7 @@ class FieldServiceOrder(models.Model):
             order.amount_due = order.amount_total - order.amount_paid
 
     @api.model
-    def _group_expand_states(self, states, domain, order):
+    def _group_expand_states(self, values, domain):
         return [key for key, _val in self._fields['state'].selection]
 
     # ──────────────────────────────────────────────────────────────────────────

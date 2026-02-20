@@ -307,63 +307,13 @@
     </record>
 
     <!-- ═══════════════════════════════════════════════════════════════════════
-         VISTA BÚSQUEDA
-    ═══════════════════════════════════════════════════════════════════════ -->
-    <record id="view_fso_search" model="ir.ui.view">
-        <field name="name">field.service.order.search</field>
-        <field name="model">field.service.order</field>
-        <field name="arch" type="xml">
-            <search string="Buscar Órdenes de Servicio">
-                <field name="name" string="Referencia"/>
-                <field name="partner_id"/>
-                <field name="technician_id"/>
-                <field name="user_id"/>
-                <filter string="Mis Órdenes" name="my_orders"
-                        domain="[('user_id', '=', uid)]"/>
-                <filter string="Mis Asignaciones" name="my_assignments"
-                        domain="[('technician_id', '=', uid)]"/>
-                <separator/>
-                <filter string="Borrador" name="draft"
-                        domain="[('state', '=', 'draft')]"/>
-                <filter string="Asignadas" name="assigned"
-                        domain="[('state', '=', 'assigned')]"/>
-                <filter string="En Curso" name="in_progress"
-                        domain="[('state', '=', 'in_progress')]"/>
-                <filter string="Completadas" name="done"
-                        domain="[('state', '=', 'done')]"/>
-                <filter string="Facturadas" name="invoiced"
-                        domain="[('state', '=', 'invoiced')]"/>
-                <separator/>
-                <filter string="Urgentes" name="urgent"
-                        domain="[('priority', '=', '1')]"/>
-                <filter string="Hoy" name="today"
-                        domain="[('scheduled_date', '>=', context_today().strftime('%Y-%m-%d')),
-                                 ('scheduled_date', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Agrupar por">
-                    <filter string="Estado" name="group_state"
-                            context="{'group_by': 'state'}"/>
-                    <filter string="Tipo de Servicio" name="group_type"
-                            context="{'group_by': 'service_type'}"/>
-                    <filter string="Técnico" name="group_technician"
-                            context="{'group_by': 'technician_id'}"/>
-                    <filter string="Cliente" name="group_partner"
-                            context="{'group_by': 'partner_id'}"/>
-                    <filter string="Fecha Programada" name="group_date"
-                            context="{'group_by': 'scheduled_date:week'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
-    <!-- ═══════════════════════════════════════════════════════════════════════
          ACCIÓN PRINCIPAL
     ═══════════════════════════════════════════════════════════════════════ -->
     <record id="action_field_service_orders" model="ir.actions.act_window">
         <field name="name">Órdenes de Servicio</field>
         <field name="res_model">field.service.order</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="search_view_id" ref="view_fso_search"/>
-        <field name="context">{'search_default_my_orders': 1}</field>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 ¡Cree su primera orden de servicio!
