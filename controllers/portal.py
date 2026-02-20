@@ -218,6 +218,27 @@ class FieldServicePortal(CustomerPortal):
         return request.redirect('/my/field-service/%s' % order_id)
 
     # ──────────────────────────────────────────────────────────────────────────
+    # Checklist
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @http.route(
+        '/my/field-service/<int:order_id>/checklist',
+        type='http', auth='user', website=True, methods=['POST']
+    )
+    def portal_fso_checklist(self, order_id, access_token=None, **kw):
+        order_sudo = self._fso_check_access(order_id, access_token)
+        self._check_is_technician(order_sudo)
+        if order_sudo.state not in ('in_progress', 'done'):
+            return request.redirect('/my/field-service/%s' % order_id)
+        for item in order_sudo.checklist_ids:
+            is_done = kw.get('item_%s_done' % item.id) == 'on'
+            notes = kw.get('item_%s_notes' % item.id, '') or ''
+            item.sudo().write({'is_done': is_done, 'notes': notes})
+        return request.redirect(
+            '/my/field-service/%s?success=Checklist guardado correctamente' % order_id
+        )
+
+    # ──────────────────────────────────────────────────────────────────────────
     # Firma del cliente
     # ──────────────────────────────────────────────────────────────────────────
 

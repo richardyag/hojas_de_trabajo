@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Field Service – Hojas de Trabajo',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Services/Field Service',
     'summary': 'Órdenes de servicio en campo con técnicos de portal',
     'description': """
@@ -36,6 +36,7 @@
         'data/field_service_sequences.xml',
         'data/mail_templates.xml',
         # Views backend
+        'views/field_service_checklist_views.xml',
         'views/field_service_order_views.xml',
         'views/field_service_menu.xml',
         # Portal

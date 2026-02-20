@@ -206,6 +206,26 @@
                             </div>
                         </page>
 
+                        <!-- Pestaña: Checklist -->
+                        <page string="Checklist" name="checklist">
+                            <group>
+                                <field name="checklist_template_id"
+                                       options="{'no_create': True}"
+                                       string="Plantilla"/>
+                                <field name="checklist_progress"
+                                       widget="progressbar" readonly="1"
+                                       invisible="not checklist_ids"/>
+                            </group>
+                            <field name="checklist_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="is_done"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+
                         <!-- Pestaña: Notas -->
                         <page string="Notas" name="notes">
                             <group string="Notas del Técnico">

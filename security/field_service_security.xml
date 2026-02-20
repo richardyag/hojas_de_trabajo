@@ -71,6 +71,20 @@
         <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Checklist: portal puede leer ítems de sus órdenes -->
+    <record id="rule_fso_checklist_portal" model="ir.rule">
+        <field name="name">FSO Checklist: Técnico portal ve sus ítems</field>
+        <field name="model_id" ref="model_fso_checklist_item"/>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="domain_force">[
+            ('order_id.technician_id.partner_id', '=', user.partner_id.id)
+        ]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
     <!-- Pagos: portal puede leer pagos de sus órdenes -->
     <record id="rule_fsp_portal" model="ir.rule">
         <field name="name">FSP: Portal lee pagos de sus órdenes</field>

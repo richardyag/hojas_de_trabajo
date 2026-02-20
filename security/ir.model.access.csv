@@ -10,3 +10,10 @@ access_fsp_user,fsp.user,model_field_service_payment,base.group_user,1,1,1,0
 access_fsp_portal,fsp.portal,model_field_service_payment,base.group_portal,1,0,0,0
 access_fsw_manager,fsw.manager,model_fso_signature_wizard,group_field_service_manager,1,1,1,1
 access_fsw_user,fsw.user,model_fso_signature_wizard,base.group_user,1,1,1,1
+access_fsct_manager,fsct.manager,model_fso_checklist_template,group_field_service_manager,1,1,1,1
+access_fsct_user,fsct.user,model_fso_checklist_template,base.group_user,1,0,0,0
+access_fsctl_manager,fsctl.manager,model_fso_checklist_template_line,group_field_service_manager,1,1,1,1
+access_fsctl_user,fsctl.user,model_fso_checklist_template_line,base.group_user,1,0,0,0
+access_fscl_manager,fscl.manager,model_fso_checklist_item,group_field_service_manager,1,1,1,1
+access_fscl_user,fscl.user,model_fso_checklist_item,base.group_user,1,1,1,1
+access_fscl_portal,fscl.portal,model_fso_checklist_item,base.group_portal,1,0,0,0

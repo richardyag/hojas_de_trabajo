@@ -44,4 +44,11 @@
               sequence="90"
               groups="group_field_service_manager"/>
 
+    <menuitem id="menu_fso_checklist_templates"
+              name="Plantillas de Checklist"
+              parent="menu_fso_config"
+              action="action_fso_checklist_templates"
+              sequence="10"
+              groups="group_field_service_manager"/>
+
 </odoo>

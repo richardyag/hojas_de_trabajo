@@ -126,6 +126,21 @@ class FieldServiceOrder(models.Model):
         string='Pagos'
     )
 
+    # ─── Checklist ────────────────────────────────────────────────────────────
+    checklist_template_id = fields.Many2one(
+        'fso.checklist.template', string='Plantilla de Checklist',
+        tracking=True,
+        help='Seleccione una plantilla para cargar el checklist automáticamente'
+    )
+    checklist_ids = fields.One2many(
+        'fso.checklist.item', 'order_id',
+        string='Checklist'
+    )
+    checklist_progress = fields.Integer(
+        compute='_compute_checklist_progress',
+        string='Progreso Checklist (%)'
+    )
+
     # ─── Firma ────────────────────────────────────────────────────────────────
     signature = fields.Binary(
         string='Firma del Cliente', copy=False, attachment=True
@@ -178,6 +193,21 @@ class FieldServiceOrder(models.Model):
     # ──────────────────────────────────────────────────────────────────────────
     # Cómputos
     # ──────────────────────────────────────────────────────────────────────────
+
+    @api.onchange('checklist_template_id')
+    def _onchange_checklist_template(self):
+        if self.checklist_template_id:
+            self.checklist_ids = [(5,)] + [
+                (0, 0, {'name': line.name, 'sequence': line.sequence})
+                for line in self.checklist_template_id.line_ids
+            ]
+
+    @api.depends('checklist_ids.is_done')
+    def _compute_checklist_progress(self):
+        for order in self:
+            total = len(order.checklist_ids)
+            done = sum(1 for item in order.checklist_ids if item.is_done)
+            order.checklist_progress = int(done / total * 100) if total else 0
 
     @api.depends(
         'line_ids.price_subtotal', 'line_ids.price_tax',
