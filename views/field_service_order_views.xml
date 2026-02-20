@@ -88,6 +88,7 @@
                             <field name="user_id"/>
                             <field name="technician_id"
                                    domain="[('active', '=', True), '|', ('share', '=', True), ('share', '=', False)]"
+                                   context="{'show_portal': True}"
                                    options="{'no_quick_create': True}"/>
                             <field name="scheduled_date"/>
                             <field name="start_date" readonly="1"/>

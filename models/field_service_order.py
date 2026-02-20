@@ -70,6 +70,7 @@ class FieldServiceOrder(models.Model):
     technician_id = fields.Many2one(
         'res.users', string='Técnico', tracking=True,
         domain=[('active', '=', True), '|', ('share', '=', True), ('share', '=', False)],
+        context={'show_portal': True},
         help='Puede ser usuario interno o de portal (sin costo de licencia adicional)'
     )
     hours_worked = fields.Float(
