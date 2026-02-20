@@ -69,7 +69,12 @@ class FieldServiceOrder(models.Model):
     )
     technician_id = fields.Many2one(
         'res.users', string='Técnico', tracking=True,
+        domain=[('active', '=', True), '|', ('share', '=', True), ('share', '=', False)],
         help='Puede ser usuario interno o de portal (sin costo de licencia adicional)'
+    )
+    hours_worked = fields.Float(
+        string='Horas Trabajadas', digits=(16, 2), tracking=True,
+        help='Horas totales insumidas en la orden'
     )
     technician_partner_id = fields.Many2one(
         related='technician_id.partner_id', string='Contacto Técnico', readonly=True

@@ -88,10 +88,12 @@
                         <group string="Responsables y Fechas">
                             <field name="user_id"/>
                             <field name="technician_id"
-                                   domain="[('active', '=', True), '|', ('share', '=', True), ('share', '=', False)]"/>
+                                   domain="[('active', '=', True), '|', ('share', '=', True), ('share', '=', False)]"
+                                   options="{'no_quick_create': True}"/>
                             <field name="scheduled_date"/>
                             <field name="start_date" readonly="1"/>
                             <field name="completion_date" readonly="1"/>
+                            <field name="hours_worked"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                     </group>
@@ -242,6 +244,7 @@
                 <field name="partner_id"/>
                 <field name="technician_id"/>
                 <field name="scheduled_date"/>
+                <field name="hours_worked" optional="show"/>
                 <field name="amount_total" optional="show"/>
                 <field name="amount_due" optional="show"/>
                 <field name="state" widget="badge"
